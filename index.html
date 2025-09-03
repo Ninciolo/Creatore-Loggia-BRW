@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mappa Esagoni</title>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212">
+
+  <!-- Icona app (puoi cambiarla) -->
+  <link rel="icon" href="icon-192.png" type="image/png">
+
+  <style>
+    /* (Qui rimane tutto il CSS della versione precedente che ti ho dato) */
+  </style>
+</head>
+<body>
+  <!-- (Toolbar, SVG, script identici alla versione che funziona già) -->
+
+  <script>
+    // (Qui rimane TUTTO il codice JS che ti ho preparato prima con rigenerazione e toggle)
+
+    // Registrazione Service Worker per PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(
+        reg => console.log("✅ Service Worker registrato:", reg.scope),
+        err => console.log("❌ Service Worker non registrato:", err)
+      );
+    }
+  </script>
+</body>
+</html>

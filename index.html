@@ -4,26 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Creatore Loggia BRW</title>
-
-  <!-- Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-
-  <!-- Icone PWA -->
-  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-
   <style>
     body {
+      margin: 0;
+      background: #f2f2f2;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f0f0f0;
-      margin: 0;
     }
     canvas {
-      background: transparent;
+      display: block;
     }
   </style>
 </head>
@@ -33,110 +24,94 @@
   <script>
     const canvas = document.getElementById("hexCanvas");
     const ctx = canvas.getContext("2d");
-    const size = 50; // grandezza esagoni
-    const zoom = 2; // zoom 100% in più
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
 
-    // Colori disponibili
-    const colors = ["red", "green", "blue", "yellow", "gray", "purple"];
-
-    // Coordinate degli esagoni (centro)
-    const hexes = [
-      {q: 0, r: 0, special: "Rosa Nera", color: "black"}, // centro
-      {q: 1, r: 0}, {q: 0, r: 1}, {q: -1, r: 1}, {q: -1, r: 0}, {q: 0, r: -1}, {q: 1, r: -1}, // primo anello
-      {q: 2, r: -1}, {q: 2, r: -2}, {q: 1, r: -2}, {q: 0, r: -2}, {q: -1, r: -1},
-      {q: -2, r: 0}, {q: -2, r: 1}, {q: -1, r: 2}, {q: 0, r: 2}, {q: 1, r: 1}, {q: 2, r: 0}, // secondo anello
-    ];
-
-    // Stanze esterne A, B, C, D
-    const externalRooms = [
-      {q: 0, r: -3, label: "A"},
-      {q: 3, r: -3, label: "B"},
-      {q: 3, r: 0, label: "C"},
-      {q: -3, r: 3, label: "D"}
-    ];
-
-    // Conversione assi esagonali in pixel
-    function hexToPixel(q, r) {
-      const x = size * Math.sqrt(3) * (q + r / 2);
-      const y = size * 3/2 * r;
-      // rotazione -45° (antioraria)
-      const angle = -Math.PI/4;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const xr = x * cos - y * sin;
-      const yr = x * sin + y * cos;
-      return {x: canvas.width/2 + xr * zoom, y: canvas.height/2 + yr * zoom};
+    function resizeCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+      ctx.scale(dpr, dpr);
     }
 
-    // Disegna un esagono
-    function drawHex(x, y, color, text, big=false, thick=false) {
-      const lineWidth = thick ? 6 : 2;
+    function drawHexagon(ctx, x, y, size, fillColor, text = "", textColor = "black", bold = false) {
+      const angleStep = Math.PI / 3;
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
-        const angle = Math.PI / 3 * i;
-        const px = x + size * zoom * Math.cos(angle);
-        const py = y + size * zoom * Math.sin(angle);
+        const angle = angleStep * i;
+        const px = x + size * Math.cos(angle);
+        const py = y + size * Math.sin(angle);
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
       ctx.closePath();
-      ctx.fillStyle = color || "white";
+      ctx.fillStyle = fillColor;
       ctx.fill();
-      ctx.lineWidth = lineWidth;
-      ctx.strokeStyle = thick ? "black" : "darkgray";
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#333";
       ctx.stroke();
 
       if (text) {
-        ctx.fillStyle = (color === "black") ? "white" : "black";
-        ctx.font = big ? `${22 * zoom}px Arial Black` : `${16 * zoom}px Arial`;
+        ctx.fillStyle = textColor;
+        ctx.font = `${bold ? "bold " : ""}${size * 0.5}px Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(text, x, y);
       }
     }
 
-    // Genera configurazione colori
-    function generateColors() {
-      return hexes.map((h, i) => {
-        if (h.special === "Rosa Nera") return h;
-        return {...h, color: colors[Math.floor(Math.random() * colors.length)]};
-      });
-    }
-
-    function drawBoard() {
+    function drawGrid() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const coloredHexes = generateColors();
 
-      // Disegno esagoni interni
-      for (const h of coloredHexes) {
-        const {x, y} = hexToPixel(h.q, h.r);
-        let label = h.special === "Rosa Nera" ? "Rosa Nera" : (h.q === 1 && h.r === -1 ? "Sala Trono" : "");
-        drawHex(x, y, h.color, label, true);
+      const size = Math.min(window.innerWidth, window.innerHeight) / 8; // dinamico
+      const hexHeight = Math.sqrt(3) * size;
+      const hexWidth = 2 * size;
+      const vertSpacing = hexHeight;
+      const horizSpacing = 3/4 * hexWidth;
+
+      // centro della griglia
+      const offsetX = window.innerWidth / 2;
+      const offsetY = window.innerHeight / 2;
+
+      const colors = ["red","green","blue","yellow","gray","purple"];
+      let idx = 0;
+
+      const rows = 5;
+      const cols = 5;
+
+      for (let r = 0; r < rows; r++) {
+        for (let q = 0; q < cols; q++) {
+          const x = offsetX + (q - 2) * horizSpacing;
+          const y = offsetY + (r - 2) * vertSpacing + (q % 2 ? vertSpacing / 2 : 0);
+          if (Math.abs(q - 2) + Math.abs(r - 2) <= 3) {
+            let color = colors[idx % colors.length];
+            idx++;
+            drawHexagon(ctx, x, y, size, color);
+          }
+        }
       }
 
-      // Disegno stanze esterne
-      for (const r of externalRooms) {
-        const {x, y} = hexToPixel(r.q, r.r);
-        drawHex(x, y, "white", r.label, true, true);
-      }
+      // Rosa Nera al centro
+      drawHexagon(ctx, offsetX, offsetY, size, "black", "Rosa Nera", "white", true);
+
+      // Sala Trono (esempio su un vicino)
+      const salaX = offsetX - horizSpacing;
+      const salaY = offsetY;
+      drawHexagon(ctx, salaX, salaY, size, "purple", "Sala Trono", "yellow", true);
+
+      // Stanze A, B, C, D
+      drawHexagon(ctx, offsetX, offsetY - vertSpacing * 2, size, "white", "A", "black", true);
+      drawHexagon(ctx, offsetX + horizSpacing * 2, offsetY, size, "white", "B", "black", true);
+      drawHexagon(ctx, offsetX, offsetY + vertSpacing * 2, size, "white", "C", "black", true);
+      drawHexagon(ctx, offsetX - horizSpacing * 2, offsetY, size, "white", "D", "black", true);
     }
 
-    drawBoard();
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      drawGrid();
+    });
 
-    // Bottone per rigenerare configurazione
-    window.addEventListener("click", drawBoard);
-
-    // Registrazione Service Worker
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").then(
-          (reg) => console.log("Service worker registrato:", reg),
-          (err) => console.log("Errore service worker:", err)
-        );
-      });
-    }
+    resizeCanvas();
+    drawGrid();
   </script>
 </body>
 </html>

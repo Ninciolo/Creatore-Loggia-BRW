@@ -4,14 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Creatore Loggia BRW</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body {
       margin: 0;
-      background: #f2f2f2;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      background: #f0f0f0;
     }
     canvas {
       display: block;
@@ -25,34 +26,27 @@
     const canvas = document.getElementById("hexCanvas");
     const ctx = canvas.getContext("2d");
 
-    function resizeCanvas() {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
-      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
-      ctx.scale(dpr, dpr);
-    }
-
-    function drawHexagon(ctx, x, y, size, fillColor, text = "", textColor = "black", bold = false) {
-      const angleStep = Math.PI / 3;
+    function drawHex(ctx, x, y, size, fillColor, text, textColor, isSpecial=false) {
       ctx.beginPath();
       for (let i = 0; i < 6; i++) {
-        const angle = angleStep * i;
+        const angle = (Math.PI / 3) * i;
         const px = x + size * Math.cos(angle);
         const py = y + size * Math.sin(angle);
         if (i === 0) ctx.moveTo(px, py);
         else ctx.lineTo(px, py);
       }
       ctx.closePath();
+
       ctx.fillStyle = fillColor;
       ctx.fill();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "#333";
+
+      ctx.lineWidth = isSpecial ? 5 : 2;
+      ctx.strokeStyle = isSpecial ? "black" : "gray";
       ctx.stroke();
 
       if (text) {
-        ctx.fillStyle = textColor;
-        ctx.font = `${bold ? "bold " : ""}${size * 0.5}px Arial`;
+        ctx.fillStyle = textColor || "black";
+        ctx.font = `${isSpecial ? size * 0.6 : size * 0.35}px Arial`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(text, x, y);
@@ -60,58 +54,55 @@
     }
 
     function drawGrid() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
 
-      const size = Math.min(window.innerWidth, window.innerHeight) / 8; // dinamico
-      const hexHeight = Math.sqrt(3) * size;
-      const hexWidth = 2 * size;
-      const vertSpacing = hexHeight;
-      const horizSpacing = 3/4 * hexWidth;
-
-      // centro della griglia
-      const offsetX = window.innerWidth / 2;
-      const offsetY = window.innerHeight / 2;
-
-      const colors = ["red","green","blue","yellow","gray","purple"];
-      let idx = 0;
-
-      const rows = 5;
       const cols = 5;
+      const rows = 5;
 
-      for (let r = 0; r < rows; r++) {
-        for (let q = 0; q < cols; q++) {
-          const x = offsetX + (q - 2) * horizSpacing;
-          const y = offsetY + (r - 2) * vertSpacing + (q % 2 ? vertSpacing / 2 : 0);
-          if (Math.abs(q - 2) + Math.abs(r - 2) <= 3) {
-            let color = colors[idx % colors.length];
-            idx++;
-            drawHexagon(ctx, x, y, size, color);
-          }
-        }
-      }
+      const maxHexWidth = canvas.width / (cols + 0.5);
+      const maxHexHeight = canvas.height / ((rows * 3/4) + 0.25);
+      const hexSize = Math.min(maxHexWidth / Math.sqrt(3), maxHexHeight / 1.5);
 
-      // Rosa Nera al centro
-      drawHexagon(ctx, offsetX, offsetY, size, "black", "Rosa Nera", "white", true);
+      const hexWidth = Math.sqrt(3) * hexSize;
+      const hexHeight = 2 * hexSize;
+      const vertDist = hexHeight * 3/4;
+      const horizDist = hexWidth;
 
-      // Sala Trono (esempio su un vicino)
-      const salaX = offsetX - horizSpacing;
-      const salaY = offsetY;
-      drawHexagon(ctx, salaX, salaY, size, "purple", "Sala Trono", "yellow", true);
+      const offsetX = (canvas.width - (cols - 1) * horizDist - hexWidth) / 2 + hexWidth/2;
+      const offsetY = (canvas.height - (rows - 1) * vertDist - hexHeight) / 2 + hexHeight/2;
 
-      // Stanze A, B, C, D
-      drawHexagon(ctx, offsetX, offsetY - vertSpacing * 2, size, "white", "A", "black", true);
-      drawHexagon(ctx, offsetX + horizSpacing * 2, offsetY, size, "white", "B", "black", true);
-      drawHexagon(ctx, offsetX, offsetY + vertSpacing * 2, size, "white", "C", "black", true);
-      drawHexagon(ctx, offsetX - horizSpacing * 2, offsetY, size, "white", "D", "black", true);
+      const hexagons = [
+        {q: 2, r: 2, color: "black", text: "Rosa Nera", textColor: "white"},
+        {q: 2, r: 1, color: "yellow"},
+        {q: 1, r: 1, color: "green"},
+        {q: 3, r: 1, color: "yellow"},
+        {q: 1, r: 2, color: "red"},
+        {q: 3, r: 2, color: "red"},
+        {q: 2, r: 3, color: "blue"},
+        {q: 1, r: 3, color: "purple", text: "Sala Trono", textColor: "yellow"},
+        {q: 3, r: 3, color: "gray"},
+        {q: 0, r: 2, color: "green"},
+        {q: 4, r: 2, color: "red"},
+        {q: 2, r: 0, color: "white", text: "B", isSpecial: true},
+        {q: 4, r: 1, color: "white", text: "C", isSpecial: true},
+        {q: 0, r: 3, color: "white", text: "D", isSpecial: true},
+        {q: 2, r: 4, color: "white", text: "A", isSpecial: true}
+      ];
+
+      hexagons.forEach(h => {
+        const x = offsetX + h.q * horizDist + (h.r % 2) * (horizDist / 2);
+        const y = offsetY + h.r * vertDist;
+        drawHex(ctx, x, y, hexSize, h.color, h.text || "", h.textColor, h.isSpecial);
+      });
     }
 
-    window.addEventListener("resize", () => {
-      resizeCanvas();
-      drawGrid();
-    });
-
-    resizeCanvas();
+    window.addEventListener("resize", drawGrid);
     drawGrid();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("service-worker.js");
+    }
   </script>
 </body>
 </html>

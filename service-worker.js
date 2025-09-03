@@ -1,6 +1,6 @@
 self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open("brw-store").then(cache => {
+    caches.open("loggia-brw").then(cache => {
       return cache.addAll([
         "/",
         "/index.html",

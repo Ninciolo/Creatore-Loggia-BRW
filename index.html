@@ -5,6 +5,7 @@
   <title>Creatore Loggia BRW</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121212"/>
   <style>
     :root {
       --bg: #f0f2f5;
@@ -41,7 +42,7 @@
     button:hover { filter:brightness(0.95); }
 
     #canvas {
-      width: 95vw; height: 86vh; max-width: 1100px; max-height: 1100px;
+      width: 95vw; height: 86vh; max-width: 1500px; max-height: 1500px;
       background: transparent;
     }
 
@@ -61,7 +62,7 @@
       stroke-linejoin: round; fill: #fff; pointer-events:none;
     }
     .big-label { font-size: 34px; }
-    .huge-label { font-size: 48px; } /* per A B C D */
+    .huge-label { font-size: 48px; } /* per le Celle */
 
     .outerHex {
       fill: white;
@@ -75,7 +76,7 @@
 </head>
 <body>
   <div class="toolbar">
-    <button id="regen">🔄 Rigenera</button>
+    <button id="regen">🔄 Rigenera Tabellone</button>
     <button id="toggle" class="secondary">🌓 Light/Dark</button>
   </div>
 
@@ -88,7 +89,7 @@
     const btnRegen = document.getElementById("regen");
     const btnToggle = document.getElementById("toggle");
 
-    const size = 96;
+    const size = 128; // ingrandito del 33%
     const internalColors = ["green","yellow","red","purple","blue","grey"];
 
     const hexCoords = [
@@ -152,7 +153,7 @@
         }
       }
       note.textContent = ok
-        ? `✅ Configurazione valida dopo ${attempts} tentativi.`
+        ? `✅ Tabellone valido dopo ${attempts} tentativi.`
         : `⚠️ Nessuna configurazione valida entro ${MAX} tentativi.`;
 
       let thronePlaced=false;
@@ -204,11 +205,12 @@
     btnRegen.addEventListener("click", drawHexes);
     btnToggle.addEventListener("click", ()=>{ document.body.classList.toggle("dark"); });
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js");
-    }
-
     drawHexes();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
   </script>
 </body>
 </html>

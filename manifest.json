@@ -1,18 +1,18 @@
 {
   "name": "Creatore Loggia BRW",
-  "short_name": "LoggiaBRW",
+  "short_name": "Loggia BRW",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#121212",
-  "theme_color": "#1e88e5",
+  "theme_color": "#121212",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
